@@ -223,7 +223,7 @@ But I just started it!
 Then it occurred to me I was being stupid, jacking into a =shadow-cljs= when there's
 an already a running =watch= process, so this path was abandoned.
 
-** Jacking in to clj REPL and adding a sibling jack-in for shadow-cljs
+** Jacking in to clj REPL and adding a sibling cljs REPL connect for shadow-cljs
 
 Keeping the =shadow-cljs watch app= process running in a terminal, I next tried =M-x
 cider-jack-in-clj= to bring up just the =tools.deps= backend, followed by adding a
