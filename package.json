@@ -1,0 +1,19 @@
+{
+  "name": "starter-cider-tools-deps-shadow",
+  "version": "0.1.0",
+  "description": "starter-cider-tools-deps-shadow",
+  "main": "index.js",
+  "author": "Mark Stuart <codeasone@gmail.com>",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "watch": "npx shadow-cljs watch app"
+  },
+  "devDependencies": {
+    "shadow-cljs": "^2.11.23"
+  },
+  "dependencies": {
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2"
+  }
+}

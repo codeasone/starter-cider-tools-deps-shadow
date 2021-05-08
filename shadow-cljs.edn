@@ -1,0 +1,9 @@
+{:deps {:aliases [:dev:frontend:backend]}
+ :nrepl {:port 9123}
+ :dev-http {8123 "resources/public"}
+ :builds
+ {:app {:target :browser
+        :dev {:output-dir "resources/public/js"}
+        :asset-path "/js"
+        :modules
+        {:main {:entries [starter_cider_tools_deps_shadow.core]}}}}}

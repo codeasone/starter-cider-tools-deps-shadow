@@ -1,0 +1,330 @@
+#+TITLE: starter-cider-tools-deps-shadow
+
+This repo is intended to be a demo-rig and point of reference (early May 2021) for
+getting a reasonable full-stack =shadow-cljs= plus =tools.deps= development workflow
+under =cider=.
+
+My work project contains a large number of =clj=, =cljc=, and =cljs= sources, uses
+=tools.deps= for dependency management, and /was/ using =figwheel-main= for
+live-coding the front-end. Performance and stability of the live recompile/loading
+has become an issue, so the team recently tried =shadow-cljs=.
+
+I had issues arriving at a satisfactory workflow within Emacs, mostly due to some
+stupid assumptions on my part.
+
+The following issue reports suggest other people are confused too:
+
+- https://github.com/clojure-emacs/cider/issues/2946
+- https://github.com/clojure-emacs/cider/issues/2447
+
+Having spent the last few years working mostly with =figwheel-main= and the
+=clojure-cli= build tool, it took a few hours of failed attempts before landing on a
+=shadow-cljs= workflow with =cider= that felt satisfactory.
+
+Hopefully this repo will help people understand the choices to be made and adapt
+their projects over to =shadow-cljs=.
+
+* Preliminaries
+
+If you want to jump into evaluating the workflow using the sample code provided, then
+execute the following after cloning:
+
+#+BEGIN_SRC sh
+➜ yarn install
+#+END_SRC
+
+Then visit =server.clj= in Emacs and jack-in with =M-x cider-jack-in-clj&cljs=
+
+*NB:* you may need to accept the folder local variables defined in =.dir-locals.el=
+as safe
+
+* Take-aways
+
+Use =shadow-cljs= as your build tool and /not/ =clojure-cli= (even though you're
+using =tools.deps= for dependency mgmt)
+
+Consider using the following =.dir-locals.el= to avoid the constant interactive
+prompts:
+
+#+BEGIN_SRC emacs-lisp
+((nil
+  . ((cider-preferred-build-tool . shadow-cljs)
+     (cider-default-cljs-repl . shadow)
+     (cider-shadow-default-options . "app")
+     (cider-offer-to-open-cljs-app-in-browser . nil))))
+#+END_SRC
+
+Define the following - or similar - in your =shadow-cljs.edn=:
+
+#+BEGIN_SRC clojure
+{:deps {:aliases [:dev:frontend:backend]}}
+#+END_SRC
+
+So all the dependencies required to start your backend /and/ frontend builds are
+available to the REPLs =cider= will be firing up.
+
+Under the =shadow-cljs= build tool, the =clj= REPL will start in the =shadow.user= namespace.
+
+So, add a =shadow/user.clj= somewhere on your classpath with the code you typically use
+to bring up your backend, for instance:
+
+#+BEGIN_SRC clojure
+(ns shadow.user
+  (:require [compojure.handler :as handler]
+            [ring.adapter.jetty :as jetty]
+            [starter-cider-tools-deps-shadow.server :as server]))
+
+(def site (handler/site server/app))
+
+(defonce ^:dynamic server nil)
+
+(defn stop
+  []
+  (when server
+    (.stop server)))
+
+(defn start
+  [& [port]]
+  (stop)
+  (alter-var-root
+   #'server
+   (constantly
+    (jetty/run-jetty #'site
+                     {:port (Long. (or port 5000))
+                      :join? false}))))
+#+END_SRC
+
+Don't run =shadow-cljs watch app= in a separate terminal. Instead, jack-in with =M-x
+cider-jack-in-clj&cljs= as you've probably always done with =figwheel-main= and
+=clojure-cli= before.
+
+You'll see something like the following in the =clj= REPL output:
+
+#+BEGIN_EXAMPLE clojure
+;; Connected to nREPL server - nrepl://localhost:9123
+;; CIDER 1.1.0 (package: 20210422.802) (Plovdiv), nREPL 0.8.3
+;; Clojure 1.10.3, Java 14.0.2
+;;     Docs: (doc function-name)
+;;           (find-doc part-of-name)
+;;   Source: (source function-name)
+;;  Javadoc: (javadoc java-object-or-class)
+;;     Exit: <C-c C-q>
+;;  Results: Stored in vars *1, *2, *3, an exception in *e;
+;;  Startup: /home/mark/.asdf/shims/npx shadow-cljs -d nrepl/nrepl:0.8.3 -d cider/piggieback:0.5.2 -d refactor-nrepl/refactor-nrepl:2.5.1 -d cider/cider-nrepl:0.26.0 server
+;;
+;; ClojureScript REPL type: shadow
+;;
+shadow.user>
+shadow.user> (start)
+2021-05-08 14:03:51.408:INFO:oejs.Server:nREPL-session-5345ead4-2e20-4a3e-8a7e-ded511002422: jetty-9.4.40.v20210413; built: 2021-04-13T20:42:42.668Z; git: b881a572662e1943a14ae12e7e1207989f218b74; jvm 14.0.2+12-46
+2021-05-08 14:03:51.422:INFO:oejs.AbstractConnector:nREPL-session-5345ead4-2e20-4a3e-8a7e-ded511002422: Started ServerConnector@1b0d6b37{HTTP/1.1, (http/1.1)}{0.0.0.0:5000}
+2021-05-08 14:03:51.423:INFO:oejs.Server:nREPL-session-5345ead4-2e20-4a3e-8a7e-ded511002422: Started @40864ms
+#<org.eclipse.jetty.server.Server@46410d1d Server@46410d1d{STARTED}[9.4.40.v20210413]>
+#+END_EXAMPLE
+
+and a "piggy-backed" =cljs= REPL will spring into life with:
+
+#+BEGIN_EXAMPLE clojure
+;; Connected to nREPL server - nrepl://localhost:9123
+;; CIDER 1.1.0 (package: 20210422.802) (Plovdiv), nREPL 0.8.3
+;; Clojure 1.10.3, Java 14.0.2
+;;     Docs: (doc function-name)
+;;           (find-doc part-of-name)
+;;   Source: (source function-name)
+;;  Javadoc: (javadoc java-object-or-class)
+;;     Exit: <C-c C-q>
+;;  Results: Stored in vars *1, *2, *3, an exception in *e;
+;;  Startup: /home/mark/.asdf/shims/npx shadow-cljs -d nrepl/nrepl:0.8.3 -d cider/piggieback:0.5.2 -d refactor-nrepl/refactor-nrepl:2.5.1 -d cider/cider-nrepl:0.26.0 server
+;;
+;; ClojureScript REPL type: shadow
+;; ClojureScript REPL init form: (do (require '[shadow.cljs.devtools.api :as shadow]) (shadow/watch :app) (shadow/nrepl-select :app))
+;;
+[:app] Configuring build.
+[:app] Compiling ...
+[:app] Build completed. (138 files, 0 compiled, 0 warnings, 3.26s)
+To quit, type: :cljs/quit
+[:selected :app]shadow.user>
+cljs.user>
+#+END_EXAMPLE
+
+Happily =sesman= reports the following =M-x sesman-browser=:
+
+#+BEGIN_EXAMPLE
+  1: Personal/starter-cider-tools-deps-shadow:localhost:9123
+      linked-to: proj(~/Code/Personal/starter-cider-tools-deps-shadow/)
+        objects: *cider-repl %s(clj)*  *cider-repl %s(cljs:shadow)*
+#+END_EXAMPLE
+
+Life is good!🍹
+
+We have sibling =clj= and =cljs= REPLs linked to our project.
+
+* What didn't work (and cost me a few hours)
+
+Based on my experience to date working with =cider= and =tool.deps= plus =figwheel=:
+
+** Running =M-x cider-jack-in-clj&cljs= and hoping it would just DWIM
+
+I (mistakenly) chose =clojure-cli= for =cider-preferred-build-tool= when prompted
+because I wanted to ensure I could bring up the backend. I assumed I could piggyback
+in a =shadow-cljs= REPL, and that it would just DWIM.
+
+Don't do this.
+
+When prompted for the =cljs= repl type, I selected =shadow= and the =:app= build,
+after which the following appeared:
+
+#+BEGIN_EXAMPLE
+1. Unhandled clojure.lang.ExceptionInfo
+   shadow-cljs has not been started yet!  In embedded mode you need to call
+   (shadow.cljs.devtools.server/start!) to start it.  If you have a shadow-cljs
+   server or watch running then you are not connected to that process.
+#+END_EXAMPLE
+
+Judging by the accompanying stack trace it's not starting the =nrepl= server. Why
+wouldn't it do that by default?
+
+Keep in mind at this point I've not run any =shadow-cljs= process in a terminal,
+because I just expect =cider= to DWIM on jack-in, given my =shadow-cljs.edn= config
+being as it is.
+
+Picking up on =shadow-cljs has not been started yet!= I try running =shadow-cljs
+watch app= in a separate terminal (which worked fine):
+
+#+BEGIN_SRC sh
+➜  starter-cider-tools-deps-shadow git:(master) ✗ shadow-cljs watch app
+shadow-cljs - config: /home/mark/Code/Personal/starter-cider-tools-deps-shadow/shadow-cljs.edn
+shadow-cljs - starting via "clojure"
+WARNING: When invoking clojure.main, use -M
+shadow-cljs - HTTP server available at http://localhost:8123
+shadow-cljs - server version: 2.12.5 running at http://localhost:9630
+shadow-cljs - nREPL server started on port 9123
+shadow-cljs - watching build :app
+[:app] Configuring build.
+[:app] Compiling ...
+[:app] Build completed. (138 files, 2 compiled, 0 warnings, 3.33s)
+#+END_SRC
+
+Great!
+
+...and tried jacking in again
+
+Next =M-x cider-jack-in-clj&cljs=: same error
+
+#+BEGIN_EXAMPLE
+shadow-cljs has not been started yet!  In embedded mode you need to call
+(shadow.cljs.devtools.server/start!) to start it.  If you have a shadow-cljs
+server or watch running then you are not connected to that process.
+{}
+#+END_EXAMPLE
+
+But I just started it!
+
+Then it occurred to me I was being stupid, jacking into a =shadow-cljs= when there's
+an already a running =watch= process, so this path was abandoned.
+
+** Jacking in to clj REPL and adding a sibling jack-in for shadow-cljs
+
+Keeping the =shadow-cljs watch app= process running in a terminal, I next tried =M-x
+cider-jack-in-clj= to bring up just the =tools.deps= backend, followed by adding a
+sibling =cljs= connection to the =nrepl= on port =9123= (courtesy of the =shadow-cljs
+watch= running in the separate terminal)
+
+As expected, everything went smoothly with the =M-x cider-jack-in-clj=.
+
+#+BEGIN_SRC clojure
+;; Connected to nREPL server - nrepl://localhost:35679
+;; CIDER 1.1.0 (package: 20210422.802) (Plovdiv), nREPL 0.8.3
+;; Clojure 1.10.3, Java 14.0.2
+;;     Docs: (doc function-name)
+;;           (find-doc part-of-name)
+;;   Source: (source function-name)
+;;  Javadoc: (javadoc java-object-or-class)
+;;     Exit: <C-c C-q>
+;;  Results: Stored in vars *1, *2, *3, an exception in *e;
+;;  Startup: /home/mark/.asdf/shims/clojure -Sdeps '{:deps {nrepl/nrepl {:mvn/version "0.8.3"} refactor-nrepl/refactor-nrepl {:mvn/version "2.5.1"} cider/cider-nrepl {:mvn/version "0.26.0"}} :aliases {:cider/nrepl {:main-opts ["-m" "nrepl.cmdline" "--middleware" "[refactor-nrepl.middleware/wrap-refactor,cider.nrepl/cider-middleware]"]}}}' -M:cider/nrepl
+user>
+user>
+user> (start)
+#<org.eclipse.jetty.server.Server@5cdd10ce Server@5cdd10ce{STARTED}[9.4.40.v20210413]>
+#+END_SRC
+
+=sesman= is correctly telling me I have only one =clj= REPL:
+
+#+BEGIN_EXAMPLE
+  1: Personal/starter-cider-tools-deps-shadow:localhost:35679
+      linked-to: proj(~/Code/Personal/starter-cider-tools-deps-shadow/)
+        objects: *cider-repl %s(clj)*
+#+END_EXAMPLE
+
+Time to add a sibling connection to that =nrepl= on port =9123= for the =cljs=:
+
+=M-x cider-connect-sibling-cljs= then select =shadow= and =:app= build:
+
+Same error as before:
+
+#+BEGIN_EXAMPLE
+shadow-cljs has not been started yet!  In embedded mode you need to call
+(shadow.cljs.devtools.server/start!) to start it.  If you have a shadow-cljs
+server or watch running then you are not connected to that process.
+{}
+#+END_EXAMPLE
+
+But it /is/ running.
+
+So I kill the repl.
+
+Maybe I should use =shadow-select= for the repl type:
+
+=M-x cider-connect-sibling-cljs= then select =shadow-select= and =:app= build:
+
+#+BEGIN_EXAMPLE
+;; ClojureScript REPL type: shadow-select
+;; ClojureScript REPL init form: (do (require '[shadow.cljs.devtools.api :as shadow]) (shadow/nrepl-select :app))
+;;
+:missing-nrepl-middlewareuser>
+#+END_EXAMPLE
+
+Jeez, okay. So at this point I start hacking some =.dir-locals.el= specifically to
+add =shadow.cljs.devtools.server.nrepl/middleware= to
+=cider-jack-in-nrepl-middlewares= and and establish a =custom= repl type as per [[https://github.com/clojure-emacs/cider/issues/2946#issuecomment-768140666][this
+issue]]
+
+This kind of works but I always end up with two separate =sesman= sessions that,
+whilst both linked to my project, fail to work well when switching between =clj=,
+=cljc=, and =cljs= source files.
+
+With the =clj= REPL as the one most recently used, jumping to REPL from a =cljs= file
+reports:
+
+#+BEGIN_EXAMPLE
+cider--no-repls-user-error: No cljs REPLs in current session "Personal/starter-cider-tools-deps-shadow:localhost:35679"
+#+END_EXAMPLE
+
+And likewise for =clj= files, if the =cljs= REPL was the last one used.
+
+Bletch, what a pain...
+
+So, don't do any of the stupid things I did above, adopt the =.dir-locals.el= and method described in the Takeaways, and all should be well.
+
+Using =shadow-cljs= seems an order of magnitude faster; very sweet indeed!
+
+* Environment
+
+A bit about my setup, because if yours if different YMMV significantly:
+
+** Emacs (native-comp)
+
+#+BEGIN_EXAMPLE
+GNU Emacs 28.0.50 (build 1, x86_64-pc-linux-gnu, GTK+ Version 3.24.20, cairo version 1.16.0) of 2021-04-21
+#+END_EXAMPLE
+
+** Cider
+
+#+BEGIN_EXAMPLE
+CIDER 1.1.0 (package: 20210422.802) (Plovdiv)
+#+END_EXAMPLE
+
+** Other
+
+As per the =deps.edn= and =package.json=

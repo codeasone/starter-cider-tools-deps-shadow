@@ -1,0 +1,20 @@
+{:paths ["src/clj" "src/cljc" "src/cljs" "resources"]
+ :deps
+ {org.clojure/clojure {:mvn/version "1.10.3"}
+  org.clojure/clojurescript {:mvn/version "1.10.844"}}
+
+ :aliases
+ {:dev
+  {:extra-paths ["dev"]
+   :extra-deps
+   {thheller/shadow-cljs {:mvn/version "2.12.5"}}}
+
+  :backend
+  {:extra-deps
+   {compojure/compojure {:mvn/version "1.6.1"}
+    ring/ring-jetty-adapter {:mvn/version "1.9.3"}}}
+
+  :frontend
+  {:extra-deps
+   {uix/core {:mvn/version "0.0.1-alpha"}
+    uix/dom {:mvn/version "0.0.1-alpha"}}}}}
