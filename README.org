@@ -7,11 +7,11 @@ entails running the backend within the =shadow-cljs= server, which is funky!
 
 This repo is intended to be a demo-rig and point of reference (early May 2021) for
 getting a reasonable full-stack =shadow-cljs= plus =tools.deps= development workflow
-under =cider=.
+under =cider=, given the present limitations of =sesman=.
 
 My work project contains a large number of =clj=, =cljc=, and =cljs= sources, uses
 =tools.deps= for dependency management, and /was/ using =figwheel-main= for
-live-coding the front-end. Performance and stability of the live recompile/loading
+live-coding the front-end. Performance and stability of the live re-loading
 has become an issue, so the team recently tried =shadow-cljs=.
 
 I had issues arriving at a satisfactory workflow within Emacs, mostly due to some
