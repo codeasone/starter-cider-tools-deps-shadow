@@ -41,7 +41,7 @@ as safe
 
 * Take-aways
 
-Use =shadow-cljs= as your build tool and /not/ =clojure-cli= (even though you're
+Use =shadow-cljs= as your =cider= build tool and /not/ =clojure-cli= (even though you're
 using =tools.deps= for dependency mgmt)
 
 Consider using the following =.dir-locals.el= to avoid the constant interactive
@@ -64,7 +64,8 @@ Define the following - or similar - in your =shadow-cljs.edn=:
 So all the dependencies required to start your backend /and/ frontend builds are
 available to the REPLs =cider= will be firing up.
 
-Under the =shadow-cljs= build tool, the =clj= REPL will start in the =shadow.user= namespace.
+Under the =shadow-cljs= build tool, the =clj= REPL will start in the =shadow.user=
+namespace (I'm not sure of the background and reasons for this).
 
 So, add a =shadow/user.clj= somewhere on your classpath with the code you typically use
 to bring up your backend, for instance:
@@ -116,11 +117,6 @@ You'll see something like the following in the =clj= REPL output:
 ;; ClojureScript REPL type: shadow
 ;;
 shadow.user>
-shadow.user> (start)
-2021-05-08 14:03:51.408:INFO:oejs.Server:nREPL-session-5345ead4-2e20-4a3e-8a7e-ded511002422: jetty-9.4.40.v20210413; built: 2021-04-13T20:42:42.668Z; git: b881a572662e1943a14ae12e7e1207989f218b74; jvm 14.0.2+12-46
-2021-05-08 14:03:51.422:INFO:oejs.AbstractConnector:nREPL-session-5345ead4-2e20-4a3e-8a7e-ded511002422: Started ServerConnector@1b0d6b37{HTTP/1.1, (http/1.1)}{0.0.0.0:5000}
-2021-05-08 14:03:51.423:INFO:oejs.Server:nREPL-session-5345ead4-2e20-4a3e-8a7e-ded511002422: Started @40864ms
-#<org.eclipse.jetty.server.Server@46410d1d Server@46410d1d{STARTED}[9.4.40.v20210413]>
 #+END_EXAMPLE
 
 and a "piggy-backed" =cljs= REPL will spring into life with:
@@ -146,6 +142,16 @@ and a "piggy-backed" =cljs= REPL will spring into life with:
 To quit, type: :cljs/quit
 [:selected :app]shadow.user>
 cljs.user>
+#+END_EXAMPLE
+
+Finally, =start= you backend (serving the HTML which includes the =main.js= from =shadow-cljs= in my contrived example)
+
+#+BEGIN_EXAMPLE clojure
+shadow.user> (start)
+2021-05-08 14:03:51.408:INFO:oejs.Server:nREPL-session-5345ead4-2e20-4a3e-8a7e-ded511002422: jetty-9.4.40.v20210413; built: 2021-04-13T20:42:42.668Z; git: b881a572662e1943a14ae12e7e1207989f218b74; jvm 14.0.2+12-46
+2021-05-08 14:03:51.422:INFO:oejs.AbstractConnector:nREPL-session-5345ead4-2e20-4a3e-8a7e-ded511002422: Started ServerConnector@1b0d6b37{HTTP/1.1, (http/1.1)}{0.0.0.0:5000}
+2021-05-08 14:03:51.423:INFO:oejs.Server:nREPL-session-5345ead4-2e20-4a3e-8a7e-ded511002422: Started @40864ms
+#<org.eclipse.jetty.server.Server@46410d1d Server@46410d1d{STARTED}[9.4.40.v20210413]>
 #+END_EXAMPLE
 
 Happily =sesman= reports the following =M-x sesman-browser=:
@@ -233,23 +239,6 @@ watch= running in the separate terminal)
 
 As expected, everything went smoothly with the =M-x cider-jack-in-clj=.
 
-#+BEGIN_SRC clojure
-;; Connected to nREPL server - nrepl://localhost:35679
-;; CIDER 1.1.0 (package: 20210422.802) (Plovdiv), nREPL 0.8.3
-;; Clojure 1.10.3, Java 14.0.2
-;;     Docs: (doc function-name)
-;;           (find-doc part-of-name)
-;;   Source: (source function-name)
-;;  Javadoc: (javadoc java-object-or-class)
-;;     Exit: <C-c C-q>
-;;  Results: Stored in vars *1, *2, *3, an exception in *e;
-;;  Startup: /home/mark/.asdf/shims/clojure -Sdeps '{:deps {nrepl/nrepl {:mvn/version "0.8.3"} refactor-nrepl/refactor-nrepl {:mvn/version "2.5.1"} cider/cider-nrepl {:mvn/version "0.26.0"}} :aliases {:cider/nrepl {:main-opts ["-m" "nrepl.cmdline" "--middleware" "[refactor-nrepl.middleware/wrap-refactor,cider.nrepl/cider-middleware]"]}}}' -M:cider/nrepl
-user>
-user>
-user> (start)
-#<org.eclipse.jetty.server.Server@5cdd10ce Server@5cdd10ce{STARTED}[9.4.40.v20210413]>
-#+END_SRC
-
 =sesman= is correctly telling me I have only one =clj= REPL:
 
 #+BEGIN_EXAMPLE
@@ -271,11 +260,9 @@ server or watch running then you are not connected to that process.
 {}
 #+END_EXAMPLE
 
-But it /is/ running.
+But it /is/ running. So I kill the repl.
 
-So I kill the repl.
-
-Maybe I should use =shadow-select= for the repl type:
+Thinking I should use =shadow-select= for the repl type, I tried:
 
 =M-x cider-connect-sibling-cljs= then select =shadow-select= and =:app= build:
 
