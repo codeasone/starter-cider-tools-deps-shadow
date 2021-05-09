@@ -1,9 +1,9 @@
 #+TITLE: starter-cider-tools-deps-shadow
 
-*DISCLAIMER:* I'm new to =shadow-cljs= and according to it's maintainer this approach
+*DISCLAIMER:* I'm new to =shadow-cljs= and according to its maintainer this approach
 entails running the backend within the =shadow-cljs= server, which is funky!
 
-----
+-
 
 This repo is intended to be a demo-rig and point of reference (early May 2021) for
 getting a reasonable full-stack =shadow-cljs= plus =tools.deps= development workflow
@@ -312,20 +312,7 @@ Using =shadow-cljs= seems an order of magnitude faster; very sweet indeed!
 
 * Environment
 
-A bit about my setup, because if yours if different YMMV significantly:
-
-** Emacs (native-comp)
-
 #+BEGIN_EXAMPLE
 GNU Emacs 28.0.50 (build 1, x86_64-pc-linux-gnu, GTK+ Version 3.24.20, cairo version 1.16.0) of 2021-04-21
-#+END_EXAMPLE
-
-** Cider
-
-#+BEGIN_EXAMPLE
 CIDER 1.1.0 (package: 20210422.802) (Plovdiv)
 #+END_EXAMPLE
-
-** Other
-
-As per the =deps.edn= and =package.json=
