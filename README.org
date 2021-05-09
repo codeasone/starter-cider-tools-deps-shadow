@@ -31,7 +31,7 @@ Having spent the last few years working mostly with =figwheel-main= and the
 If you want to jump into evaluating the workflow using the sample code provided, then
 execute =yarn install= after cloning:
 
-Then visit =server.clj= in Emacs and jack-in with =M-x cider-jack-in-clj&cljs=
+Visit =server.clj= in Emacs and jack-in with =M-x cider-jack-in-clj&cljs=
 
 *NB:* you may need to accept the folder local variables defined in =.dir-locals.el=
 as safe
@@ -141,7 +141,7 @@ To quit, type: :cljs/quit
 cljs.user>
 #+END_EXAMPLE
 
-Finally, =start= you backend (serving the HTML which includes the =main.js= from =shadow-cljs= in my contrived example)
+Finally, =(start)= the backend (serving the HTML which includes the =main.js= from =shadow-cljs= in my contrived example)
 
 #+BEGIN_EXAMPLE clojure
 shadow.user> (start)
