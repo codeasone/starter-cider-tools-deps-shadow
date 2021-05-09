@@ -26,9 +26,6 @@ Having spent the last few years working mostly with =figwheel-main= and the
 =clojure-cli= build tool, it took a few hours of failed attempts before landing on a
 =shadow-cljs= workflow with =cider= that felt satisfactory.
 
-Hopefully this repo will help people understand the choices to be made and adapt
-their projects over to =shadow-cljs=.
-
 * Preliminaries
 
 If you want to jump into evaluating the workflow using the sample code provided, then
