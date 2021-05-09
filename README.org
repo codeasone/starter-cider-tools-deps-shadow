@@ -1,5 +1,10 @@
 #+TITLE: starter-cider-tools-deps-shadow
 
+*DISCLAIMER:* I'm new to =shadow-cljs= and according to it's maintainer this approach
+entails running the backend within the =shadow-cljs= server, which is funky!
+
+----
+
 This repo is intended to be a demo-rig and point of reference (early May 2021) for
 getting a reasonable full-stack =shadow-cljs= plus =tools.deps= development workflow
 under =cider=.
@@ -27,11 +32,7 @@ their projects over to =shadow-cljs=.
 * Preliminaries
 
 If you want to jump into evaluating the workflow using the sample code provided, then
-execute the following after cloning:
-
-#+BEGIN_SRC sh
-➜ yarn install
-#+END_SRC
+execute =yarn install= after cloning:
 
 Then visit =server.clj= in Emacs and jack-in with =M-x cider-jack-in-clj&cljs=
 
