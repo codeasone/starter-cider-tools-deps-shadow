@@ -15,11 +15,24 @@
    [:body
     [:h1 "shadow-cljs + UIX"]
     [:div {:id "app"}]
-    (include-js (str "http://localhost:8123/js/main.js"))
+    (include-js "http://localhost:8123/js/main.js")
     [:script "starter_cider_tools_deps_shadow.core.init();"]]))
+
+(defn devcards-html []
+  (html5
+   [:head
+    [:meta {:charset "UTF-8"}]
+    [:meta {:name "viewport"
+            :content "width=device-width, initial-scale=1"}]
+    [:title "Devcards"]]
+   [:body
+    [:div {:id "app"}]
+    (include-js "http://localhost:8123/js/devcards/main.js")
+    [:script "starter_cider_tools_deps_shadow.devcards.init();"]]))
 
 (defroutes routes
   (GET "/" [] (index-html))
+  (GET "/devcards" [] (devcards-html))
   (route/not-found (not-found "Not found")))
 
 (def app

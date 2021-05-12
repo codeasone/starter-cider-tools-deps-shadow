@@ -3,8 +3,6 @@
 *DISCLAIMER:* I'm new to =shadow-cljs= and according to its maintainer this approach
 entails running the backend within the =shadow-cljs= server, which is funky!
 
--
-
 This repo is intended to be a demo-rig and point of reference (early May 2021) for
 getting a reasonable full-stack =shadow-cljs= plus =tools.deps= development workflow
 under =cider=, given the present limitations of =sesman=.
@@ -41,28 +39,28 @@ as safe
 Use =shadow-cljs= as your =cider= build tool and /not/ =clojure-cli= (even though you're
 using =tools.deps= for dependency mgmt)
 
-Consider using the following =.dir-locals.el= to avoid the constant interactive
-prompts:
+Consider the following to avoid the constant interactive prompts:
 
 #+BEGIN_SRC emacs-lisp
 ((nil
   . ((cider-preferred-build-tool . shadow-cljs)
      (cider-default-cljs-repl . shadow)
-     (cider-shadow-default-options . "app")
-     (cider-offer-to-open-cljs-app-in-browser . nil))))
+     (cider-shadow-watched-builds . ("app" "devcards"))
+     (cider-offer-to-open-cljs-app-in-browser . nil)
+     (cider-shadow-cljs-global-options . "-A:dev:frontend:backend"))))
 #+END_SRC
 
-Define the following - or similar - in your =shadow-cljs.edn=:
+Adopt the following in your =shadow-cljs.edn=:
 
 #+BEGIN_SRC clojure
-{:deps {:aliases [:dev:frontend:backend]}}
+{:deps true
+ ...}
 #+END_SRC
 
-So all the dependencies required to start your backend /and/ frontend builds are
+*Note:* all the dependencies required to start your backend /and/ frontend builds are
 available to the REPLs =cider= will be firing up.
 
-Under the =shadow-cljs= build tool, the =clj= REPL will start in the =shadow.user=
-namespace (I'm not sure of the background and reasons for this).
+The =clj= REPL will start in the =shadow.user= namespace (I'm not sure of the background and reasons for this).
 
 So, add a =shadow/user.clj= somewhere on your classpath with the code you typically use
 to bring up your backend, for instance:
@@ -93,23 +91,14 @@ to bring up your backend, for instance:
                       :join? false}))))
 #+END_SRC
 
-Don't run =shadow-cljs watch app= in a separate terminal. Instead, jack-in with =M-x
+Don't run =shadow-cljs watch app devcards= in a separate terminal. Instead, jack-in with =M-x
 cider-jack-in-clj&cljs= as you've probably always done with =figwheel-main= and
 =clojure-cli= before.
 
 You'll see something like the following in the =clj= REPL output:
 
 #+BEGIN_EXAMPLE clojure
-;; Connected to nREPL server - nrepl://localhost:9123
-;; CIDER 1.1.0 (package: 20210422.802) (Plovdiv), nREPL 0.8.3
-;; Clojure 1.10.3, Java 14.0.2
-;;     Docs: (doc function-name)
-;;           (find-doc part-of-name)
-;;   Source: (source function-name)
-;;  Javadoc: (javadoc java-object-or-class)
-;;     Exit: <C-c C-q>
-;;  Results: Stored in vars *1, *2, *3, an exception in *e;
-;;  Startup: /home/mark/.asdf/shims/npx shadow-cljs -d nrepl/nrepl:0.8.3 -d cider/piggieback:0.5.2 -d refactor-nrepl/refactor-nrepl:2.5.1 -d cider/cider-nrepl:0.26.0 server
+;;  Startup: /home/mark/.asdf/shims/npx shadow-cljs -A:dev:frontend:backend -d nrepl/nrepl:0.8.3 -d cider/piggieback:0.5.2 -d refactor-nrepl/refactor-nrepl:2.5.1 -d cider/cider-nrepl:0.26.0 server
 ;;
 ;; ClojureScript REPL type: shadow
 ;;
@@ -119,23 +108,17 @@ shadow.user>
 and a "piggy-backed" =cljs= REPL will spring into life with:
 
 #+BEGIN_EXAMPLE clojure
-;; Connected to nREPL server - nrepl://localhost:9123
-;; CIDER 1.1.0 (package: 20210422.802) (Plovdiv), nREPL 0.8.3
-;; Clojure 1.10.3, Java 14.0.2
-;;     Docs: (doc function-name)
-;;           (find-doc part-of-name)
-;;   Source: (source function-name)
-;;  Javadoc: (javadoc java-object-or-class)
-;;     Exit: <C-c C-q>
-;;  Results: Stored in vars *1, *2, *3, an exception in *e;
-;;  Startup: /home/mark/.asdf/shims/npx shadow-cljs -d nrepl/nrepl:0.8.3 -d cider/piggieback:0.5.2 -d refactor-nrepl/refactor-nrepl:2.5.1 -d cider/cider-nrepl:0.26.0 server
+;;  Startup: /home/mark/.asdf/shims/npx shadow-cljs -A:dev:frontend:backend -d nrepl/nrepl:0.8.3 -d cider/piggieback:0.5.2 -d refactor-nrepl/refactor-nrepl:2.5.1 -d cider/cider-nrepl:0.26.0 server
 ;;
 ;; ClojureScript REPL type: shadow
-;; ClojureScript REPL init form: (do (require '[shadow.cljs.devtools.api :as shadow]) (shadow/watch :app) (shadow/nrepl-select :app))
+;; ClojureScript REPL init form: (do (require '[shadow.cljs.devtools.api :as shadow]) (shadow/watch :app) (shadow/watch :devcards) (shadow/nrepl-select :app))
 ;;
 [:app] Configuring build.
 [:app] Compiling ...
-[:app] Build completed. (138 files, 0 compiled, 0 warnings, 3.26s)
+[:app] Build completed. (375 files, 0 compiled, 0 warnings, 3.36s)
+[:devcards] Configuring build.
+[:devcards] Compiling ...
+[:devcards] Build completed. (374 files, 0 compiled, 0 warnings, 1.23s)
 To quit, type: :cljs/quit
 [:selected :app]shadow.user>
 cljs.user>

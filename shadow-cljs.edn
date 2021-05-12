@@ -1,9 +1,18 @@
-{:deps {:aliases [:dev:frontend:backend]}
+{:deps true
  :nrepl {:port 9123}
  :dev-http {8123 "resources/public"}
  :builds
  {:app {:target :browser
-        :dev {:output-dir "resources/public/js"}
+        :output-dir "resources/public/js"
         :asset-path "/js"
-        :modules
-        {:main {:entries [starter_cider_tools_deps_shadow.core]}}}}}
+        :js-options {:resolve {"devcards-marked" {:target :npm :require "marked"}
+                               "devcards-syntax-highlighter" {:target :npm :require "highlight.js"}}}
+        :modules {:main {:init-fn starter_cider_tools_deps_shadow.core/init}}}
+
+  :devcards {:target :browser
+             :output-dir "resources/public/js/devcards"
+             :asset-path "js/devcards"
+             :modules {:main {:init-fn starter_cider_tools_deps_shadow.devcards/init}}
+             :js-options {:resolve {"devcards-marked" {:target :npm :require "marked"}
+                                    "devcards-syntax-highlighter" {:target :npm :require "highlight.js"}}}
+             :compiler-options {:devcards true}}}}
